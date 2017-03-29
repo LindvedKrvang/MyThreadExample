@@ -5,6 +5,9 @@
  */
 package mythreadexample;
 
+import java.util.Scanner;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -22,6 +25,7 @@ public class MyThreadExample {
      */
     public static void main(String[] args) {
 
+        //Simple Runnable task.
         Runnable task = () -> {
             try {
                 String threadName = Thread.currentThread().getName();
@@ -38,6 +42,7 @@ public class MyThreadExample {
 //        for (int i = 0; i < 10; i++) {
 //            new Thread(task).start();
 //        }
+        //Using a servie to run the task.
         ExecutorService executor = Executors.newSingleThreadExecutor();
         executor.submit(task); //Creates a service that keeps running until it's shutdown.
         try {
@@ -54,6 +59,40 @@ public class MyThreadExample {
 //        Thread thread = new Thread(task);
 //        thread.start(); //Setup new thread and execute run.
         System.out.println("Done! - " + Thread.currentThread().getName());
+
+        //A Callable task.
+        Callable<Integer> calltask = () -> {
+
+            int sum = 0;
+            for (int i = 0; i < 10; i++) {
+                sum += i;
+                Thread.sleep(1000);
+            }
+
+            return sum;
+        };
+
+        ExecutorService callExecutor = Executors.newSingleThreadExecutor();
+        callExecutor.submit(calltask);
+
+        for (int i = 0; i < 10; i++) {
+            System.out.println("Processing...");
+        }
+
+        try {
+            int result = calltask.call();
+            System.out.println("Result: " + result);
+        } catch (Exception ex) {
+            Logger.getLogger(MyThreadExample.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        //To get data whenever it is done.
+        CompletableFuture.supplyAsync(new DataLoader()).thenAccept(new DataPrinter<>());
+        System.out.println("Press ENTER to continue...");
+        new Scanner(System.in).nextLine();
+        System.out.println("Done!");
+
+        System.exit(0);
     }
 
 }
